@@ -110,6 +110,8 @@ public class SearchTest {
 		client = new SearchableClient();
 		client.setBasePackage("com.itranswarp.search");
 		client.init();
+		client.createIndex();
+		client.createMapping(Tweet.class);
 		// continue do output:
 		new Thread() {
 			public void run() {

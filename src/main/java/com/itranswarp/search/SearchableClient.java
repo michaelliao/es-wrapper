@@ -198,6 +198,39 @@ public class SearchableClient implements AutoCloseable {
 		log.info("Init client...");
 		this.client = new PreBuiltTransportClient(Settings.EMPTY)
 				.addTransportAddress(new InetSocketTransportAddress(InetAddress.getByName(host), port));
+		// check doc types:
+		List<Class<?>> docTypes = ClassUtil.scan(basePackage, (c) -> {
+			return c.isAnnotationPresent(SearchableDocument.class);
+		});
+		for (Class<?> docType : docTypes) {
+			this.mappings.put(docType, new Mapping(docType));
+		}
+	}
+
+	public boolean createMapping(Class<?> docType) {
+		Mapping mapping = getMappingFromClass(docType);
+		IndicesAdminClient idc = client.admin().indices();
+		GetMappingsResponse gmr = idc.getMappings(new GetMappingsRequest()).actionGet();
+		ImmutableOpenMap<String, ImmutableOpenMap<String, MappingMetaData>> mappings = gmr.getMappings();
+		if (mappings.containsKey(mapping.getType())) {
+			log.info("Found mapping for class " + docType.getName() + ".");
+			return false;
+		}
+		log.info("Mapping not found for class " + docType.getName() + ". Auto-create...");
+		PutMappingResponse pmr = idc.preparePutMapping(index).setType(mapping.getType()).setSource(mapping.getSource())
+				.get();
+		if (!pmr.isAcknowledged()) {
+			throw new RuntimeException("Failed to create mapping for class:" + docType.getName() + ".");
+		}
+		return true;
+	}
+
+	/**
+	 * Create index.
+	 * 
+	 * @return True if index create ok, false if index is already exist.
+	 */
+	public boolean createIndex() {
 		// check index exist:
 		IndicesAdminClient idc = client.admin().indices();
 		IndicesExistsResponse ier = idc.exists(new IndicesExistsRequest(index)).actionGet();
@@ -206,29 +239,11 @@ public class SearchableClient implements AutoCloseable {
 			// create index:
 			CreateIndexResponse cir = idc.create(new CreateIndexRequest(index)).actionGet();
 			if (!cir.isAcknowledged()) {
-				throw new IOException("Failed to create index.");
+				throw new RuntimeException("Failed to create index.");
 			}
+			return true;
 		}
-		// check doc types:
-		List<Class<?>> docTypes = ClassUtil.scan(basePackage, (c) -> {
-			return c.isAnnotationPresent(SearchableDocument.class);
-		});
-		GetMappingsResponse gmr = idc.getMappings(new GetMappingsRequest()).actionGet();
-		ImmutableOpenMap<String, ImmutableOpenMap<String, MappingMetaData>> mappings = gmr.getMappings();
-		for (Class<?> docType : docTypes) {
-			Mapping mapping = new Mapping(docType);
-			if (mappings.containsKey(mapping.getType())) {
-				log.info("Found mapping for class " + docType.getName() + ".");
-			} else {
-				log.info("Mapping not found for class " + docType.getName() + ". Auto-create...");
-				PutMappingResponse pmr = idc.preparePutMapping(index).setType(mapping.getType())
-						.setSource(mapping.getSource()).get();
-				if (!pmr.isAcknowledged()) {
-					throw new IOException("Failed to create mapping for class:" + docType.getName() + ".");
-				}
-			}
-			this.mappings.put(docType, mapping);
-		}
+		return false;
 	}
 
 	@Override

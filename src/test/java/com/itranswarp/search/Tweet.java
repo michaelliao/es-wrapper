@@ -22,7 +22,7 @@ public class Tweet {
 	@SearchableId
 	public String id;
 
-	@SearchableField
+	@SearchableField(boost = 5)
 	public String name;
 
 	@SearchableField

@@ -10,14 +10,14 @@ public class Mapping {
 	final Class<?> clazz;
 	final Field id;
 	final Map<String, Field> fields;
-	final Map<String, Map<String, String>> mapping;
+	final Map<String, Map<String, Object>> mapping;
 
 	public Mapping(Class<?> clazz) {
 		this.clazz = clazz;
 		// scan for id and fields:
 		Field id = null;
 		Map<String, Field> fields = new HashMap<>();
-		Map<String, Map<String, String>> mapping = new HashMap<>();
+		Map<String, Map<String, Object>> mapping = new HashMap<>();
 		for (Field f : clazz.getFields()) {
 			SearchableField sf = f.getAnnotation(SearchableField.class);
 			if (f.isAnnotationPresent(SearchableId.class)) {
@@ -29,7 +29,7 @@ public class Mapping {
 				}
 				id = f;
 			} else if (sf != null) {
-				mapping.put(f.getName(), of("type", sf.keyword() ? "keyword" : getFieldType(f)));
+				mapping.put(f.getName(), of("type", sf.keyword() ? "keyword" : getFieldType(f), "boost", sf.boost()));
 				fields.put(f.getName(), f);
 			}
 		}
@@ -45,6 +45,13 @@ public class Mapping {
 
 	<K, V> Map<K, V> of(K key, V value) {
 		return Collections.singletonMap(key, value);
+	}
+
+	<K, V> Map<K, V> of(K key1, V value1, K key2, V value2) {
+		Map<K, V> map = new HashMap<>();
+		map.put(key1, value1);
+		map.put(key2, value2);
+		return map;
 	}
 
 	public String getType() {

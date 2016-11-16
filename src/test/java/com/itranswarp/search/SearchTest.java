@@ -75,18 +75,21 @@ public class SearchTest {
 		Thread.sleep(5000);
 		// search:
 		SearchResults<Tweet> sr1 = client.search(Tweet.class, "trump");
-		assertEquals(3, sr1.hits);
 		sr1.results.stream().forEach(System.out::println);
+		assertEquals(3, sr1.hits);
 		System.out.println("====================");
 		// search:
 		SearchResults<Tweet> sr2 = client.search(Tweet.class, "微软");
-		assertEquals(2, sr2.hits);
 		sr2.results.stream().forEach(System.out::println);
+		assertEquals(2, sr2.hits);
 		System.out.println("====================");
 		SearchResults<Tweet> sr3 = client.search(Tweet.class, "trump特朗普");
-		assertEquals(4, sr3.hits);
 		sr3.results.stream().forEach(System.out::println);
+		assertEquals(4, sr3.hits);
 		System.out.println("====================");
+		SearchResults<Tweet> sr4 = client.search(Tweet.class, "普京与特朗普");
+		sr4.results.stream().forEach(System.out::println);
+		assertEquals(1, sr4.hits);
 	}
 
 	static Process process = null;

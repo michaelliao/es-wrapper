@@ -87,9 +87,9 @@ public class SearchTest {
 		sr3.results.stream().forEach(System.out::println);
 		assertEquals(4, sr3.hits);
 		System.out.println("====================");
-		SearchResults<Tweet> sr4 = client.search(Tweet.class, "普京与特朗普");
+		SearchResults<Tweet> sr4 = client.search(Tweet.class, "普京和特朗普");
 		sr4.results.stream().forEach(System.out::println);
-		assertEquals(1, sr4.hits);
+		assertEquals(3, sr4.hits);
 	}
 
 	static Process process = null;

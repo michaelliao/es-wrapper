@@ -107,7 +107,11 @@ public class SearchableClient implements AutoCloseable {
 			return QueryBuilders.termQuery("_all", span.text);
 		}
 		if (span instanceof Phrase) {
-			return QueryBuilders.matchPhraseQuery("_all", span.text);
+			if (span.text.length() > 3) {
+				return QueryBuilders.multiMatchQuery(span.text, "_all").minimumShouldMatch("75%");
+			} else {
+				return QueryBuilders.matchPhraseQuery("_all", span.text);
+			}
 		}
 		throw new IllegalArgumentException("Unsupported type of Span: " + span.getClass().getName());
 	}

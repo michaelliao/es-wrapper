@@ -1,9 +1,8 @@
 package com.itranswarp.search;
 
 import java.io.IOException;
-import java.lang.reflect.Array;
 import java.net.InetAddress;
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -73,6 +72,10 @@ public class SearchableClient implements AutoCloseable {
 	}
 
 	public <T> SearchResults<T> search(Class<T> clazz, String words) {
+		return search(clazz, words, 0.5f);
+	}
+
+	public <T> SearchResults<T> search(Class<T> clazz, String words, float minScore) {
 		Mapping mapping = getMappingFromClass(clazz);
 		Span[] spans = SplitUtil.split(words);
 		if (spans.length == 0) {
@@ -92,14 +95,17 @@ public class SearchableClient implements AutoCloseable {
 		SearchHits shs = sr.getHits();
 		long total = shs.getTotalHits();
 		SearchHit[] hs = shs.getHits();
-		@SuppressWarnings("unchecked")
-		T[] results = (T[]) Array.newInstance(clazz, hs.length);
+		List<T> results = new ArrayList<>(maxResults);
 		for (int i = 0; i < hs.length; i++) {
 			SearchHit sh = hs[i];
-			Map<String, Object> props = sh.getSource();
-			results[i] = mapping.createBean(sh.getId(), props);
+			if (sh.getScore() >= minScore) {
+				Map<String, Object> props = sh.getSource();
+				results.add(mapping.createBean(sh.getId(), props));
+			} else {
+				break;
+			}
 		}
-		return new SearchResults<>(total, Arrays.asList(results));
+		return new SearchResults<>(total, results);
 	}
 
 	QueryBuilder createQueryBuilder(Span span) {

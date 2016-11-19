@@ -90,6 +90,10 @@ public class SearchTest {
 		SearchResults<Tweet> sr4 = client.search(Tweet.class, "普京和特朗普");
 		sr4.results.stream().forEach(System.out::println);
 		assertEquals(3, sr4.hits);
+		System.out.println("====================");
+		SearchResults<Tweet> sr5 = client.search(Tweet.class, "普京和特朗普", 3.0f);
+		sr5.results.stream().forEach(System.out::println);
+		assertEquals(2, sr5.results.size());
 	}
 
 	static Process process = null;

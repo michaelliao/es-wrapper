@@ -17,7 +17,7 @@ class ClassUtil {
 	static final Log log = LogFactory.getLog(ClassUtil.class);
 
 	public static List<Class<?>> scan(String basePackage, Predicate<Class<?>> predicate) {
-		List<Class<?>> classes = new ArrayList<Class<?>>(100);
+		List<Class<?>> classes = new ArrayList<>(100);
 		try {
 			loadClasses(basePackage, classes, predicate);
 		} catch (RuntimeException e) {

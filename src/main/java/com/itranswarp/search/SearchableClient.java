@@ -72,11 +72,11 @@ public class SearchableClient implements AutoCloseable {
 	}
 
 	public <T> SearchResults<T> search(Class<T> clazz, String words) {
-		return search(clazz, words, true, 0.5f);
+		return search(clazz, words, false, 0.5f);
 	}
 
 	public <T> SearchResults<T> search(Class<T> clazz, String words, float minScore) {
-		return search(clazz, words, true, minScore);
+		return search(clazz, words, false, minScore);
 	}
 
 	public <T> SearchResults<T> search(Class<T> clazz, String words, boolean isMust, float minScore) {

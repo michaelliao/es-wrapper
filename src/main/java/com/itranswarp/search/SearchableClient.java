@@ -72,10 +72,14 @@ public class SearchableClient implements AutoCloseable {
 	}
 
 	public <T> SearchResults<T> search(Class<T> clazz, String words) {
-		return search(clazz, words, 0.5f);
+		return search(clazz, words, true, 0.5f);
 	}
 
 	public <T> SearchResults<T> search(Class<T> clazz, String words, float minScore) {
+		return search(clazz, words, true, minScore);
+	}
+
+	public <T> SearchResults<T> search(Class<T> clazz, String words, boolean isMust, float minScore) {
 		Mapping mapping = getMappingFromClass(clazz);
 		Span[] spans = SplitUtil.split(words);
 		if (spans.length == 0) {
@@ -87,7 +91,11 @@ public class SearchableClient implements AutoCloseable {
 		} else {
 			BoolQueryBuilder boolQueryBuilder = QueryBuilders.boolQuery();
 			for (Span span : spans) {
-				boolQueryBuilder.should(createQueryBuilder(span));
+				if (isMust) {
+					boolQueryBuilder.must(createQueryBuilder(span));
+				} else {
+					boolQueryBuilder.should(createQueryBuilder(span));
+				}
 			}
 			queryBuilder = boolQueryBuilder;
 		}
